@@ -8,6 +8,7 @@ About
 
 Stellarium Web Engine is a JavaScript planetarium renderer using
 WebGL that can be embedded into a website.
+This fork is what deinstern24 uses for it's website. It has just a few minor adjustments to the GUI, and different backend api URLs.
 
 
 Features
