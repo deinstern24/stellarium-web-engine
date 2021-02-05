@@ -18,15 +18,6 @@
         </div>
       </div>
     </v-card-title>
-    <v-card-text style="padding-bottom: 5px;">
-      <v-row v-if="otherNames.length > 1" style="width: 100%;">
-        <v-col cols="12">
-          <span style="position: absolute;">{{ $t('Also known as') }}</span><span style="padding-left: 33.3333%">&nbsp;</span><span class="caption white--text" v-for="mname in otherNames1to7" :key="mname" style="margin-right: 15px; font-weight: 500;">{{ mname }}</span>
-          <v-btn small icon class="grey--text" v-if="otherNames.length > 8" v-on:click.native="showMinorNames = !showMinorNames" style="margin-top: -5px; margin-bottom: -5px;"><v-icon>mdi-dots-horizontal</v-icon></v-btn>
-          <span class="caption white--text" v-for="mname in otherNames8andMore" :key="mname" style="margin-right: 15px; font-weight: 500">{{ mname }}</span>
-        </v-col>
-      </v-row>
-    </v-card-text>
     <v-card-text>
       <template v-for="item in items">
         <v-row style="width: 100%" :key="item.key" no-gutters>
@@ -107,7 +98,7 @@ export default {
       return this.selectedObject ? swh.namesForSkySource(this.selectedObject, 26) : undefined
     },
     otherNames1to7: function () {
-      return this.otherNames.slice(1, 8)
+      return this.otherNames.slice(1, 3)
     },
     otherNames8andMore: function () {
       return this.showMinorNames ? this.otherNames.slice(8) : []
@@ -117,7 +108,7 @@ export default {
       const page = this.wikipediaData.query.pages[Object.keys(this.wikipediaData.query.pages)[0]]
       if (!page || !page.extract) return ''
       const wl = '<b><a style="color: #62d1df;" target="_blank" rel="noopener" href="' + this.wikipediaLink + '">wikipedia</a></b></i>'
-      return page.extract.replace(/<p>/g, '').replace(/<\/p>/g, '') + '<span class="grey--text caption" style="margin-left:auto; margin-right:0;"><i>&nbsp; ' + this.$t('more on {0}', [wl]) + '</span>'
+      return '<span class="grey--text caption" style="margin-left:auto; margin-right:0;"><i>&nbsp; ' + this.$t('more on {0}', [wl]) + '</span>'
     },
     wikipediaLink: function () {
       const page = this.wikipediaData.query.pages[Object.keys(this.wikipediaData.query.pages)[0]]
@@ -216,7 +207,30 @@ export default {
           })
         }
       }
-
+      ret.push({
+        key: that.$t('Also known as'),
+        value: this.otherNames.slice(1, 3).join(' ').toString()
+      })
+      if (this.selectedObject.model_data.widmung) {
+        if (this.selectedObject.model_data.regnr) {
+          ret.push({
+            key: that.$t('Reg.Nr.'),
+            value: this.selectedObject.model_data.regnr.toString()
+          })
+        }
+        if (this.selectedObject.model_data.reg_datum) {
+          ret.push({
+            key: that.$t('Taufdatum'),
+            value: this.selectedObject.model_data.reg_datum.toString()
+          })
+        }
+        if (this.selectedObject.model_data.widmung) {
+          ret.push({
+            key: that.$t('Widmung'),
+            value: this.selectedObject.model_data.widmung.replace(/(\r\n|\n\r|\r|\n)/g, '<br>') + '<br><br>'
+          })
+        }
+      }
       addAttr(that.$t('Magnitude'), 'vmag', this.formatMagnitude)
       addAttr(that.$t('Distance'), 'distance', this.formatDistance)
       if (this.selectedObject.model_data) {
@@ -224,19 +238,6 @@ export default {
           ret.push({
             key: that.$t('Radius'),
             value: this.selectedObject.model_data.radius.toString() + ' Km'
-          })
-        }
-        if (this.selectedObject.model_data.spect_t) {
-          ret.push({
-            key: that.$t('Spectral Type'),
-            value: this.selectedObject.model_data.spect_t
-          })
-        }
-        if (this.selectedObject.model_data.dimx) {
-          const dimy = this.selectedObject.model_data.dimy ? this.selectedObject.model_data.dimy : this.selectedObject.model_data.dimx
-          ret.push({
-            key: that.$t('Size'),
-            value: this.selectedObject.model_data.dimx.toString() + "' x " + dimy.toString() + "'"
           })
         }
       }
@@ -286,6 +287,9 @@ export default {
         value: str
       })
       return ret
+    },
+    nl2br: function (str) {
+      return (str + '').replace(/(\r\n|\n\r|\r|\n)/g, '<br>' + '$1')
     },
     formatPhase: function (v) {
       return (v * 100).toFixed(0) + '%'
