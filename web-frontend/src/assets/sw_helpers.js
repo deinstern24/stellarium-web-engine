@@ -280,7 +280,7 @@ const swh = {
   },
 
   lookupSkySourceByName: function (name) {
-    return fetch(process.env.VUE_APP_NOCTUASKY_API_SERVER + '/api/v1/skysources/name/' + name)
+    return fetch('https://localhost/api/api.php?name=' + name)
       .then(function (response) {
         if (!response.ok) {
           throw response.body
@@ -295,7 +295,7 @@ const swh = {
     if (!limit) {
       limit = 10
     }
-    return fetch(process.env.VUE_APP_NOCTUASKY_API_SERVER + '/api/v1/skysources/?q=' + str + '&limit=' + limit)
+    return fetch('https://localhost/api/search.php?q=' + str)
       .then(function (response) {
         if (!response.ok) {
           throw response.body
