@@ -32,6 +32,7 @@ import SelectedObjectInfo from '@/components/selected-object-info.vue'
 import ProgressBars from '@/components/progress-bars'
 
 import DataCreditsDialog from '@/components/data-credits-dialog.vue'
+import About from '@/components/about.vue'
 import ViewSettingsDialog from '@/components/view-settings-dialog.vue'
 import PlanetsVisibility from '@/components/planets-visibility.vue'
 import LocationDialog from '@/components/location-dialog.vue'
@@ -68,6 +69,7 @@ export default {
     dialogs: function () {
       let res = [
         'data-credits-dialog',
+        'about',
         'view-settings-dialog',
         'planets-visibility',
         'location-dialog'
@@ -81,7 +83,7 @@ export default {
       return res
     }
   },
-  components: { Toolbar, BottomBar, DataCreditsDialog, ViewSettingsDialog, PlanetsVisibility, SelectedObjectInfo, LocationDialog, ProgressBars, ObservingPanel }
+  components: { Toolbar, BottomBar, DataCreditsDialog, About, ViewSettingsDialog, PlanetsVisibility, SelectedObjectInfo, LocationDialog, ProgressBars, ObservingPanel }
 }
 </script>
 
