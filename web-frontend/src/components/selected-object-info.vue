@@ -8,9 +8,10 @@
 
 <template>
   <v-card v-if="selectedObject" transparent style="background: rgba(66, 66, 66, 0.3);">
-    <v-btn icon style="position: absolute; right: 0" v-on:click.native="unselect()"><v-icon>mdi-close</v-icon></v-btn>
+    <v-btn style="position: absolute; right: 0;" v-if="seen" v-on:click="seen = !seen"><v-icon>mdi-minus-box</v-icon></v-btn>
+    <v-btn style="position: absolute; right: 0;" v-if="!seen" v-on:click="seen = !seen"><v-icon>mdi-plus-box</v-icon></v-btn>
     <v-card-title primary-title>
-      <div style="width: 100%">
+      <div style="width: 100vw" class="accordion" v-on:click="seen = !seen">
         <img :src="icon" height="48" width="48" align="left" style="margin-top: 3px; margin-right: 10px"/>
         <div style="overflow: hidden; text-overflow: ellipsis;">
           <div class="headline">{{ title }}</div>
@@ -18,6 +19,7 @@
         </div>
       </div>
     </v-card-title>
+   <div class="panel" v-if="seen">
     <v-card-text>
       <template v-for="item in items">
         <v-row style="width: 100%" :key="item.key" no-gutters>
@@ -65,6 +67,7 @@
     <v-snackbar bottom left :timeout="2000" v-model="copied" color="secondary" >
       Link copied
     </v-snackbar>
+  </div>
   </v-card>
 </template>
 
@@ -81,7 +84,8 @@ export default {
       shareLink: undefined,
       showShareLinkDialog: false,
       copied: false,
-      items: []
+      items: [],
+      seen: true
     }
   },
   computed: {
@@ -388,5 +392,18 @@ export default {
 .radecUnit {
   color: #dddddd;
   font-weight: normal
+}
+.accordion {
+  content: '\02795';
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  border: none;
+  outline: none;
+  transition: 0.4s;
+}
+.panel {
+  display: block;
+  overflow: hidden;
 }
 </style>
