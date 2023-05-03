@@ -31,6 +31,7 @@ const createStore = () => {
 
       showNavigationDrawer: false,
       showDataCreditsDialog: false,
+      showAbout: false,
       showViewSettingsDialog: false,
       showPlanetsVisibilityDialog: false,
       showLocationDialog: false,

@@ -17,7 +17,8 @@
   <template v-for="(item, i) in dialogs">
     <component :is="item" :key="i + pluginsGuiComponents.length"></component>
   </template>
-  <selected-object-info style="position: absolute; top: 48px; left: 0px; width: 380px; max-width: calc(100vw - 12px); margin: 6px" class="get-click"></selected-object-info>
+  <selected-object-info v-if="isMobile" style="position: absolute; top: 48px; left: 0px; width: screenSize; max-width: calc(100vw - 12px); margin: 6px" class="get-click"></selected-object-info>
+  <selected-object-info v-if="!isMobile" style="position: absolute; top: 48px; left: 0px; width: 380px; max-width: calc(100vw - 12px); margin: 6px" class="get-click"></selected-object-info>
   <progress-bars style="position: absolute; bottom: 54px; right: 12px;"></progress-bars>
   <bottom-bar style="position:absolute; width: 100%; justify-content: center; bottom: 0; display:flex; margin-bottom: 0px" class="get-click"></bottom-bar>
 </div>
@@ -31,6 +32,7 @@ import SelectedObjectInfo from '@/components/selected-object-info.vue'
 import ProgressBars from '@/components/progress-bars'
 
 import DataCreditsDialog from '@/components/data-credits-dialog.vue'
+import About from '@/components/about.vue'
 import ViewSettingsDialog from '@/components/view-settings-dialog.vue'
 import PlanetsVisibility from '@/components/planets-visibility.vue'
 import LocationDialog from '@/components/location-dialog.vue'
@@ -54,9 +56,20 @@ export default {
       }
       return res
     },
+    screenSize: function () {
+      return ((screen.width / 2) - 5) + 'px'
+    },
+    isMobile: function () {
+      if (screen.width < 800) {
+        return true
+      } else {
+        return false
+      }
+    },
     dialogs: function () {
       let res = [
         'data-credits-dialog',
+        'about',
         'view-settings-dialog',
         'planets-visibility',
         'location-dialog'
@@ -70,7 +83,7 @@ export default {
       return res
     }
   },
-  components: { Toolbar, BottomBar, DataCreditsDialog, ViewSettingsDialog, PlanetsVisibility, SelectedObjectInfo, LocationDialog, ProgressBars, ObservingPanel }
+  components: { Toolbar, BottomBar, DataCreditsDialog, About, ViewSettingsDialog, PlanetsVisibility, SelectedObjectInfo, LocationDialog, ProgressBars, ObservingPanel }
 }
 </script>
 
