@@ -84,6 +84,7 @@ export default {
         { title: this.$t('Planets Tonight'), icon: 'mdi-panorama-fisheye', store_var_name: 'showPlanetsVisibilityDialog', store_show_menu_item: 'showPlanetsVisibilityMenuItem' },
         { divider: true }
       ].concat(this.getPluginsMenuItems()).concat([
+        { title: this.$t('About'), footer: true, icon: 'mdi-information', store_var_name: 'showAbout' },
         { title: this.$t('Data Credits'), footer: true, icon: 'mdi-copyright', store_var_name: 'showDataCreditsDialog' }
       ]),
       menuComponents: [].concat(this.getPluginsMenuComponents()),

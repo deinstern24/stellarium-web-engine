@@ -1,4 +1,7 @@
 {
+    "Reg.No.": "N° d'enregistrement",
+    "Reg.date": "Date du baptême",
+    "Dedication": "Dédicace",
     "View Settings": "Paramètres d'affichage",
     "Planets Tonight": "Planètes ce soir",
     "Data Credits": "Crédits des données",
@@ -54,5 +57,11 @@
     "Moonlight": "Clair de lune",
     "Dawn": "Aube",
     "Twilight": "Crépuscule",
-    "Daylight": "Jour"
+    "Daylight": "Jour",
+    "about.title": "À propos",
+    "about.intro": "Bienvenue au Registre des Étoiles de acheter-etoile24.fr. Ce logiciel est un planétarium en ligne qui permet aux clients de acheter-etoile24.fr (DeinStern24.de) d'accéder à leur \"Baptême d'Étoile\" en saisissant leur numéro d'enregistrement. Il est basé sur \"Stellarium Web\", un planétarium en ligne fonctionnant dans votre navigateur, basé sur le projet open source <a href=\"https://github.com/Stellarium/stellarium-web-engine\" target=\"_blank\" rel=\"noopener\">Stellarium Web Engine</a>. Posez vos questions ou signalez des bugs sur <a href=\"https://acheter-etoile24.fr\" target=\"_blank\" rel=\"noopener\">acheter-etoile24.fr</a>.",
+    "about.source": "Le code source de la version de Stellarium-Web utilisée sur ce site (starregister.acheter-etoile24.fr), incluant les modifications apportées, se trouve sur notre <a href=\"https://github.com/deinstern24/stellarium-web-engine\" target=\"_blank\" rel=\"noopener\">page GitHub</a>. Notre page GitHub contient également des instructions pour configurer le logiciel vous-même.",
+    "about.support": "Si vous aimez ce logiciel et souhaitez soutenir les créateurs, veuillez envisager de <a href=\"https://opencollective.com/stellarium/donate\" target=\"_blank\" rel=\"noopener\">faire un don au projet Stellarium</a>.",
+    "Sternregister": "Registre des Étoiles",
+    "DeinStern24": "acheter-etoile24"
 }

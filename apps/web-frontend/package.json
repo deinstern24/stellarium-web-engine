@@ -18,7 +18,7 @@
     "moment": "^2.29.4",
     "roboto-fontface": "*",
     "v-click-outside": "^3.1.2",
-    "vue": "^3.0.0",
+    "vue": "^2.6.12",
     "vue-cookie": "^1.1.4",
     "vue-fullscreen": "^2.1.5",
     "vue-i18n": "^8.0.0",
@@ -48,6 +48,10 @@
     "vue-cli-plugin-vuetify": "~2.4.3",
     "vue-template-compiler": "^2.6.10",
     "vuetify-loader": "^1.2.2"
+  },
+  "resolutions": {
+    "@achrinza/node-ipc": "^10.0.0",
+    "minimatch": "^3.0.5"
   },
   "eslintConfig": {
     "root": true,
@@ -93,3 +97,5 @@
     "src/plugins/*"
   ]
 }
+
+

@@ -1,4 +1,7 @@
 {
+  "Reg.No.": "Reg.No.",
+  "Reg.date": "Reg.date",
+  "Dedication": "Dedication",
   "View Settings": "View Settings",
   "Planets Tonight": "Planets Tonight",
   "Data Credits": "Data Credits",
@@ -54,5 +57,11 @@
   "Moonlight": "Moonlight",
   "Dawn": "Dawn",
   "Twilight": "Twilight",
-  "Daylight": "Daylight"
+  "Daylight": "Daylight",
+  "about.title": "About",
+  "about.intro": "Welcome to the Starregister of DeinStern24.de. This software is an online planetarium, giving customers of DeinStern24.de the possibility to access their \"Sterntaufe\" by entering their registration number. It is based on \"Stellarium Web\", an online planetarium running in your web browser based on the open source <a href=\"https://github.com/Stellarium/stellarium-web-engine\" target=\"_blank\" rel=\"noopener\">Stellarium Web Engine</a> project. Please ask questions or report bugs on <a href=\"https://deinstern24.de\" target=\"_blank\" rel=\"noopener\">deinstern24.de</a>.",
+  "about.source": "The source code for the version of Stellarium-Web used on this website (starregister.deinstern24.de), including any changes made to it, can be found on our <a href=\"https://github.com/deinstern24/stellarium-web-engine\" target=\"_blank\" rel=\"noopener\">github page</a>. Our github page also includes instructions for setting the software up by yourself.",
+  "about.support": "If you like this software and want to support the creators, please consider <a href=\"https://opencollective.com/stellarium/donate\" target=\"_blank\" rel=\"noopener\">donating to the stellarium project</a>.",
+  "Sternregister": "Starregister",
+  "DeinStern24": "DeinStern24"
 }

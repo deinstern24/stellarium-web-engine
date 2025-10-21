@@ -16,9 +16,19 @@
 </template>
 
 <style>
+@media all and (max-width: 600px) {
   .bottom-button {
-    width: 42px;
-    height: 42px;
+    width: 36px;
+    height: 36px;
+  }
+}
+@media all and (min-width: 600px) {
+  .bottom-button {
+    width: 48px;
+    height: 48px;
+  }
+}
+  .bottom-button {
     position: relative;
     display: inline-block;
     user-select: none;

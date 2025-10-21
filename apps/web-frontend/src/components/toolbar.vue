@@ -1,4 +1,4 @@
-// Stellarium Web - Copyright (c) 2022 - Stellarium Labs SRL
+#// Stellarium Web - Copyright (c) 2022 - Stellarium Labs SRL
 //
 // This program is licensed under the terms of the GNU AGPL v3, or
 // alternatively under a commercial licence.
@@ -11,13 +11,14 @@
     <v-toolbar class="transparent" dense>
       <v-app-bar-nav-icon @click="toggleNavigationDrawer"></v-app-bar-nav-icon>
       <img class="tbtitle hidden-xs-only" id="stellarium-web-toolbar-logo" src="@/assets/images/logo.svg" width="30" height="30" alt="Stellarium Web Logo"/>
-      <span class="tbtitle hidden-sm-and-down">Stellarium<sup>Web</sup></span>
+      <span class="tbtitle hidden-sm-and-down">{{ $t('DeinStern24') }}<sup>{{ $t('Sternregister') }}</sup></span>
       <v-spacer></v-spacer>
       <target-search></target-search>
       <v-spacer></v-spacer>
-      <div v-if="$store.state.showFPS" class="subheader grey--text hidden-sm-and-down pr-2" style="user-select: none;">FPS {{ $store.state.stel ? $store.state.stel.fps.toFixed(1) : '?' }}</div>
-      <div class="subheader grey--text hidden-sm-and-down" style="user-select: none;">FOV {{ fov }}</div>
-      <v-btn class="transparent" v-if="!$store.state.showSidePanel" to="/p">{{ $t('Observe') }}<v-icon>mdi-chevron-down</v-icon></v-btn>
+      <v-spacer></v-spacer>
+      <button @click="$emit('toggle-ar')" class="ar-mode-btn" :class="{ active: arModeActive }">
+        AR Mode {{ arModeActive ? 'ON' : 'OFF' }}
+      </button>
     </v-toolbar>
   </div>
 </template>
@@ -27,6 +28,10 @@
 import TargetSearch from '@/components/target-search'
 
 export default {
+  name: 'Toolbar',
+  props: {
+    arModeActive: Boolean
+  },
   data: function () {
     return {
     }
@@ -69,5 +74,9 @@ export default {
   font-size: 20px;
   font-weight: 500;
   user-select: none;
+}
+.ar-mode-btn.active {
+  color: #4CAF50;
+  font-weight: bold;
 }
 </style>

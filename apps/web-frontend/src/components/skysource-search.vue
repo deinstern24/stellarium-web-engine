@@ -72,13 +72,15 @@ export default {
         return
       }
       this.lastQuery = str
-      swh.querySkySources(str, 10).then(results => {
-        if (str !== that.lastQuery) {
-          console.log('Cancelled query: ' + str)
-          return
-        }
-        that.autoCompleteChoices = results
-      }, err => { console.log(err) })
+      if (str.length >= 16) {
+        swh.querySkySources(str, 10).then(results => {
+          if (str !== that.lastQuery) {
+            console.log('Cancelled query: ' + str)
+            return
+          }
+          that.autoCompleteChoices = results
+        }, err => { console.log(err) })
+      }
     }, 200),
     nameForSkySource: function (s) {
       const cn = swh.cleanupOneSkySourceName(s.match)
