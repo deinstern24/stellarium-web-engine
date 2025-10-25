@@ -50,24 +50,39 @@ class DeviceOrientationController {
   async showIOSNotice () {
     return new Promise(resolve => {
       const translations = {
+        pl: {
+          title: 'Uwaga dla iOS:',
+          text: 'Proszę ręcznie ustawić urządzenie na północ, zanim naciśniesz „OK“. Kompas w przeglądarce nie jest automatycznie kalibrowany.',
+          button: 'OK'
+        },
+        it: {
+          title: 'Avviso per iOS:',
+          text: 'Si prega di allineare manualmente il dispositivo verso il nord prima di premere "OK". La bussola non viene calibrata automaticamente nel browser.',
+          button: 'OK'
+        },
         de: {
           title: 'Hinweis für iOS:',
-          text: 'Bitte richten Sie Ihr Gerät manuell nach Norden aus, bevor Sie den AR-Modus starten. Der Kompass wird im Browser nicht automatisch kalibriert.',
+          text: 'Bitte richten Sie Ihr Gerät manuell nach Norden aus, bevor Sie „OK“ drücken. Der Kompass wird im Browser nicht automatisch kalibriert.',
           button: 'OK'
         },
         en: {
           title: 'Notice for iOS:',
-          text: 'Please manually align your device to North before starting AR mode. The compass is not automatically calibrated in the browser.',
+          text: 'Please manually align your device to North before clicking "OK". The compass is not automatically calibrated in the browser.',
           button: 'OK'
         },
         fr: {
           title: 'Remarque pour iOS :',
-          text: 'Veuillez aligner manuellement votre appareil vers le nord avant de démarrer le mode AR. La boussole n\'est pas calibrée automatiquement dans le navigateur.',
+          text: 'Veuillez aligner manuellement votre appareil vers le nord avant de cliquer sur "OK". La boussole n’est pas automatiquement calibrée dans le navigateur.',
           button: 'OK'
         },
         es: {
           title: 'Aviso para iOS:',
-          text: 'Alinee manualmente su dispositivo hacia el norte antes de iniciar el modo AR. La brújula no se calibra automáticamente en el navegador.',
+          text: 'Alinee manualmente su dispositivo hacia el norte antes de pulsar "OK". La brújula no se calibra automáticamente en el navegador.',
+          button: 'OK'
+        },
+        nl: {
+          title: 'Opmerking voor iOS:',
+          text: 'Richt uw apparaat handmatig naar het noorden voordat u op "OK" klikt. Het kompas wordt in de browser niet automatisch gekalibreerd.',
           button: 'OK'
         }
         // weitere Sprachen können hinzugefügt werden
