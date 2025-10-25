@@ -49,6 +49,33 @@ class DeviceOrientationController {
 
   async showIOSNotice () {
     return new Promise(resolve => {
+      const translations = {
+        de: {
+          title: 'Hinweis für iOS:',
+          text: 'Bitte richten Sie Ihr Gerät manuell nach Norden aus, bevor Sie den AR-Modus starten. Der Kompass wird im Browser nicht automatisch kalibriert.',
+          button: 'OK'
+        },
+        en: {
+          title: 'Notice for iOS:',
+          text: 'Please manually align your device to North before starting AR mode. The compass is not automatically calibrated in the browser.',
+          button: 'OK'
+        },
+        fr: {
+          title: 'Remarque pour iOS :',
+          text: 'Veuillez aligner manuellement votre appareil vers le nord avant de démarrer le mode AR. La boussole n\'est pas calibrée automatiquement dans le navigateur.',
+          button: 'OK'
+        },
+        es: {
+          title: 'Aviso para iOS:',
+          text: 'Alinee manualmente su dispositivo hacia el norte antes de iniciar el modo AR. La brújula no se calibra automáticamente en el navegador.',
+          button: 'OK'
+        }
+        // weitere Sprachen können hinzugefügt werden
+      }
+
+      const lang = navigator.language.slice(0, 2) // z.B. "de"
+      const tr = translations[lang] || translations.en // fallback auf Englisch
+
       const modal = document.createElement('div')
       modal.style.cssText = `
         position: fixed;
@@ -71,13 +98,10 @@ class DeviceOrientationController {
         font-family: sans-serif;
         font-size: 14px;
       `
-      box.innerHTML = `
-        <strong>Hinweis für iOS:</strong><br><br>
-        Bitte richten Sie Ihr Gerät manuell nach Norden aus, bevor Sie den AR-Modus starten.<br>
-        Der Kompass wird im Browser nicht automatisch kalibriert.<br><br>
-      `
+      box.innerHTML = `<strong>${tr.title}</strong><br><br>${tr.text}<br><br>`
+
       const btn = document.createElement('button')
-      btn.textContent = 'OK'
+      btn.textContent = tr.button
       btn.style.cssText = `
         padding: 8px 16px;
         border: none;
@@ -90,7 +114,7 @@ class DeviceOrientationController {
       `
       btn.addEventListener('click', () => {
         modal.remove()
-        resolve() // Code läuft hier erst weiter
+        resolve()
       })
 
       box.appendChild(btn)
