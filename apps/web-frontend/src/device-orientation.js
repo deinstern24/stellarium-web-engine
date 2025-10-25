@@ -47,17 +47,81 @@ class DeviceOrientationController {
     return true
   }
 
+  async showIOSNotice () {
+    return new Promise(resolve => {
+      const modal = document.createElement('div')
+      modal.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+      `
+
+      const box = document.createElement('div')
+      box.style.cssText = `
+        background: #222;
+        color: #fff;
+        padding: 20px 25px;
+        border-radius: 12px;
+        max-width: 320px;
+        text-align: center;
+        font-family: sans-serif;
+        font-size: 14px;
+      `
+      box.innerHTML = `
+        <strong>Hinweis für iOS:</strong><br><br>
+        Bitte richten Sie Ihr Gerät manuell nach Norden aus, bevor Sie den AR-Modus starten.<br>
+        Der Kompass wird im Browser nicht automatisch kalibriert.<br><br>
+      `
+      const btn = document.createElement('button')
+      btn.textContent = 'OK'
+      btn.style.cssText = `
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        background: #00ff88;
+        color: #000;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 12px;
+      `
+      btn.addEventListener('click', () => {
+        modal.remove()
+        resolve() // Code läuft hier erst weiter
+      })
+
+      box.appendChild(btn)
+      modal.appendChild(box)
+      document.body.appendChild(modal)
+    })
+  }
+
   async enable () {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.userAgent.includes('Macintosh') && 'ontouchend' in document)
+    // 🔹 Hinweis direkt am Anfang, damit er IMMER angezeigt wird
+    if (isIOS) {
+      await this.showIOSNotice() // <-- blockiert, bis Nutzer OK klickt
+    }
+
     const hasPermission = await this.requestPermission()
     if (!hasPermission) {
       throw new Error('Device orientation permission denied')
     }
 
     if (window.DeviceOrientationEvent) {
-      window.addEventListener('deviceorientation', this.onOrientationChange)
+      // iOS braucht deviceorientationabsolute für korrekte Kompasswerte
+      if (isIOS && 'ondeviceorientationabsolute' in window) {
+        window.addEventListener('deviceorientationabsolute', this.onOrientationChange)
+      } else {
+        window.addEventListener('deviceorientation', this.onOrientationChange)
+      }
 
-      // Für absoluten Kompass-Heading (wenn verfügbar)
-      if ('ondeviceorientationabsolute' in window) {
+      // Für absoluten Kompass-Heading (Android)
+      if (!isIOS && 'ondeviceorientationabsolute' in window) {
         window.addEventListener('deviceorientationabsolute', this.onCompassHeading)
       }
 
@@ -65,7 +129,6 @@ class DeviceOrientationController {
       this.smoothAzimuth = null
       this.smoothAltitude = null
 
-      // initialize AR navigation
       this.initARNavigation()
 
       console.log('Device orientation enabled')
@@ -75,7 +138,14 @@ class DeviceOrientationController {
   }
 
   disable () {
-    window.removeEventListener('deviceorientation', this.onOrientationChange)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+
+    if (isIOS && 'ondeviceorientationabsolute' in window) {
+      window.removeEventListener('deviceorientationabsolute', this.onOrientationChange)
+    } else {
+      window.removeEventListener('deviceorientation', this.onOrientationChange)
+    }
+
     window.removeEventListener('deviceorientationabsolute', this.onCompassHeading)
     this.enabled = false
 
@@ -100,8 +170,17 @@ class DeviceOrientationController {
     this.beta = event.beta || 0
     this.gamma = event.gamma || 0
 
-    // use absolute compass heading when available
-    const heading = event.absolute ? this.alpha : this.compassHeading
+    // iOS: webkitCompassHeading ist zuverlässiger
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    let heading = this.alpha
+
+    if (isIOS && event.webkitCompassHeading !== undefined) {
+      heading = event.webkitCompassHeading
+    } else if (event.absolute) {
+      heading = this.alpha
+    } else {
+      heading = this.compassHeading || this.alpha
+    }
 
     this.updateStellariumView(heading, this.beta, this.gamma)
 
