@@ -47,103 +47,14 @@ class DeviceOrientationController {
     return true
   }
 
-  async showIOSNotice () {
-    return new Promise(resolve => {
-      const translations = {
-        pl: {
-          title: 'Uwaga dla iOS:',
-          text: 'Proszę ręcznie ustawić urządzenie na północ, zanim naciśniesz „OK“. Kompas w przeglądarce nie jest automatycznie kalibrowany.',
-          button: 'OK'
-        },
-        it: {
-          title: 'Avviso per iOS:',
-          text: 'Si prega di allineare manualmente il dispositivo verso il nord prima di premere "OK". La bussola non viene calibrata automaticamente nel browser.',
-          button: 'OK'
-        },
-        de: {
-          title: 'Hinweis für iOS:',
-          text: 'Bitte richten Sie Ihr Gerät manuell nach Norden aus, bevor Sie „OK“ drücken. Der Kompass wird im Browser nicht automatisch kalibriert.',
-          button: 'OK'
-        },
-        en: {
-          title: 'Notice for iOS:',
-          text: 'Please manually align your device to North before clicking "OK". The compass is not automatically calibrated in the browser.',
-          button: 'OK'
-        },
-        fr: {
-          title: 'Remarque pour iOS :',
-          text: 'Veuillez aligner manuellement votre appareil vers le nord avant de cliquer sur "OK". La boussole n’est pas automatiquement calibrée dans le navigateur.',
-          button: 'OK'
-        },
-        es: {
-          title: 'Aviso para iOS:',
-          text: 'Alinee manualmente su dispositivo hacia el norte antes de pulsar "OK". La brújula no se calibra automáticamente en el navegador.',
-          button: 'OK'
-        },
-        nl: {
-          title: 'Opmerking voor iOS:',
-          text: 'Richt uw apparaat handmatig naar het noorden voordat u op "OK" klikt. Het kompas wordt in de browser niet automatisch gekalibreerd.',
-          button: 'OK'
-        }
-        // weitere Sprachen können hinzugefügt werden
-      }
-
-      const lang = navigator.language.slice(0, 2) // z.B. "de"
-      const tr = translations[lang] || translations.en // fallback auf Englisch
-
-      const modal = document.createElement('div')
-      modal.style.cssText = `
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.6);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 99999;
-      `
-
-      const box = document.createElement('div')
-      box.style.cssText = `
-        background: #222;
-        color: #fff;
-        padding: 20px 25px;
-        border-radius: 12px;
-        max-width: 320px;
-        text-align: center;
-        font-family: sans-serif;
-        font-size: 14px;
-      `
-      box.innerHTML = `<strong>${tr.title}</strong><br><br>${tr.text}<br><br>`
-
-      const btn = document.createElement('button')
-      btn.textContent = tr.button
-      btn.style.cssText = `
-        padding: 8px 16px;
-        border: none;
-        border-radius: 8px;
-        background: #00ff88;
-        color: #000;
-        cursor: pointer;
-        font-weight: bold;
-        margin-top: 12px;
-      `
-      btn.addEventListener('click', () => {
-        modal.remove()
-        resolve()
-      })
-
-      box.appendChild(btn)
-      modal.appendChild(box)
-      document.body.appendChild(modal)
-    })
-  }
-
   async enable () {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                  (navigator.userAgent.includes('Macintosh') && 'ontouchend' in document)
-    // 🔹 Hinweis direkt am Anfang, damit er IMMER angezeigt wird
+    // iOS: Zeige erst Hinweis, dann aktiviere
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
     if (isIOS) {
-      await this.showIOSNotice() // <-- blockiert, bis Nutzer OK klickt
+      const userConfirmed = await this.showIOSCalibrationHint()
+      if (!userConfirmed) {
+        throw new Error('User cancelled iOS calibration')
+      }
     }
 
     const hasPermission = await this.requestPermission()
@@ -152,15 +63,26 @@ class DeviceOrientationController {
     }
 
     if (window.DeviceOrientationEvent) {
-      // iOS braucht deviceorientationabsolute für korrekte Kompasswerte
-      if (isIOS && 'ondeviceorientationabsolute' in window) {
-        window.addEventListener('deviceorientationabsolute', this.onOrientationChange)
-      } else {
-        window.addEventListener('deviceorientation', this.onOrientationChange)
+      // Prüfen, ob Sensor echte Werte liefert
+      const sensorSupported = await new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(false), 1000) // 1s Timeout
+        const listener = (e) => {
+          window.removeEventListener('deviceorientation', listener)
+          clearTimeout(timeout)
+          resolve(e.alpha !== null && e.beta !== null && e.gamma !== null)
+        }
+        window.addEventListener('deviceorientation', listener)
+      })
+
+      if (!sensorSupported) {
+        throw new Error('Device orientation not supported on this device')
       }
 
-      // Für absoluten Kompass-Heading (Android)
-      if (!isIOS && 'ondeviceorientationabsolute' in window) {
+      // EventListener registrieren
+      window.addEventListener('deviceorientation', this.onOrientationChange)
+
+      // Für absoluten Kompass-Heading (wenn verfügbar)
+      if ('ondeviceorientationabsolute' in window) {
         window.addEventListener('deviceorientationabsolute', this.onCompassHeading)
       }
 
@@ -168,6 +90,7 @@ class DeviceOrientationController {
       this.smoothAzimuth = null
       this.smoothAltitude = null
 
+      // initialize AR navigation
       this.initARNavigation()
 
       console.log('Device orientation enabled')
@@ -177,14 +100,7 @@ class DeviceOrientationController {
   }
 
   disable () {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-
-    if (isIOS && 'ondeviceorientationabsolute' in window) {
-      window.removeEventListener('deviceorientationabsolute', this.onOrientationChange)
-    } else {
-      window.removeEventListener('deviceorientation', this.onOrientationChange)
-    }
-
+    window.removeEventListener('deviceorientation', this.onOrientationChange)
     window.removeEventListener('deviceorientationabsolute', this.onCompassHeading)
     this.enabled = false
 
@@ -204,7 +120,27 @@ class DeviceOrientationController {
 
   onOrientationChange (event) {
     if (!this.enabled) return
-
+    /*
+    // --- Debug-Ausgabe auf dem Bildschirm ---
+    let debug = document.getElementById('debug')
+    if (!debug) {
+      debug = document.createElement('div')
+      debug.id = 'debug'
+      debug.style.cssText = `
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.7);
+        color: #0f0;
+        font-family: monospace;
+        font-size: 12px;
+        padding: 8px;
+        border-radius: 6px;
+        z-index: 9999;
+        white-space: pre;
+      `
+      document.body.appendChild(debug)
+    } */
     this.alpha = event.alpha || 0
     this.beta = event.beta || 0
     this.gamma = event.gamma || 0
@@ -213,15 +149,30 @@ class DeviceOrientationController {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
     let heading = this.alpha
 
-    if (isIOS && event.webkitCompassHeading !== undefined) {
-      heading = event.webkitCompassHeading
+    if (isIOS) {
+      if (event.webkitCompassHeading !== undefined) {
+        heading = (event.webkitCompassHeading + 180) % 360
+      } else {
+        heading = -this.alpha
+      }
     } else if (event.absolute) {
       heading = this.alpha
     } else {
       heading = this.compassHeading || this.alpha
     }
 
-    this.updateStellariumView(heading, this.beta, this.gamma)
+    /* debug.textContent =
+      `alpha: ${event.alpha?.toFixed(1)}\n` +
+      `beta: ${event.beta?.toFixed(1)}\n` +
+      `gamma: ${event.gamma?.toFixed(1)}\n` +
+      `webkitCompassHeading: ${event.webkitCompassHeading?.toFixed(1)}\n` +
+      `absolute: ${event.absolute}\n` +
+      `used heading: ${heading?.toFixed(1)}` */
+
+    // NEU: iPhone spezifisch - Gamma invertieren
+    const isIPhone = /iPhone/.test(navigator.userAgent)
+    const alpha = isIPhone ? -heading : heading
+    this.updateStellariumView(alpha, this.beta, this.gamma)
 
     // Update AR navigation
     this.updateARNavigation()
@@ -553,6 +504,76 @@ class DeviceOrientationController {
   setTarget (stellariumObject) {
     this.targetObject = stellariumObject
     this.updateTargetPosition()
+  }
+
+  // iOS Calibration Hint (returns Promise)
+  showIOSCalibrationHint () {
+    return new Promise((resolve) => {
+      const hint = document.createElement('div')
+      hint.id = 'ios-calibration-hint'
+      hint.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10001;
+      `
+
+      const dialog = document.createElement('div')
+      dialog.style.cssText = `
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        max-width: 85%;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      `
+
+      dialog.innerHTML = `
+        <div style="font-size: 60px; margin-bottom: 20px;">🧭</div>
+        <div style="font-size: 22px; font-weight: bold; margin-bottom: 15px; color: #333;">
+          Hinweis für iOS
+        </div>
+        <div style="font-size: 16px; line-height: 1.6; color: #666; margin-bottom: 25px;">
+          iOS Browser unterstützen keine automatische<br>
+          Kompass-Ausrichtung.<br><br>
+          Bitte richte dein Gerät <strong style="color: #007AFF;">nach Norden</strong> aus,<br>
+          bevor du fortfährst.
+        </div>
+        <button id="ios-hint-ok" style="
+          background: #007AFF;
+          color: white;
+          border: none;
+          padding: 14px 40px;
+          border-radius: 10px;
+          font-size: 17px;
+          font-weight: 600;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0,122,255,0.3);
+        ">OK, verstanden</button>
+      `
+
+      hint.appendChild(dialog)
+      document.body.appendChild(hint)
+
+      document.getElementById('ios-hint-ok').addEventListener('click', () => {
+        hint.remove()
+        resolve(true)
+      })
+
+      // Auch bei Klick außerhalb schließen
+      hint.addEventListener('click', (e) => {
+        if (e.target === hint) {
+          hint.remove()
+          resolve(true)
+        }
+      })
+    })
   }
 
   // ===== STATUS =====
