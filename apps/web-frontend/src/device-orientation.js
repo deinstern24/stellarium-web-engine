@@ -27,13 +27,29 @@ class DeviceOrientationController {
     this.overlay = null
     this.arrow = null
     this.lastTargetUpdate = 0
-
+    this.flipCompass = null // wird automatisch erkannt
     this.onOrientationChange = this.onOrientationChange.bind(this)
     this.onCompassHeading = this.onCompassHeading.bind(this)
+    this.debugtext = 'unset'
+  }
+
+  // robust iOS / iPadOS detection
+  isIOSDevice () {
+    // classic detection
+    const ua = navigator.userAgent || ''
+    if (/iPad|iPhone|iPod/.test(ua)) return true
+
+    // newer iPadOS can be detected as Macintosh — check for touch
+    if (ua.includes('Macintosh') && ('ontouchend' in document || navigator.maxTouchPoints > 0)) return true
+
+    // Fallback: maxTouchPoints as rough estimate
+    if (navigator.maxTouchPoints && navigator.maxTouchPoints > 0 && /Macintosh|iPhone|iPad|iPod/.test(ua)) return true
+
+    return false
   }
 
   async requestPermission () {
-    // Für iOS 13+ wird Permission benötigt
+    // iOS 13+ needs permission
     if (typeof DeviceOrientationEvent !== 'undefined' &&
         typeof DeviceOrientationEvent.requestPermission === 'function') {
       try {
@@ -48,8 +64,8 @@ class DeviceOrientationController {
   }
 
   async enable () {
-    // iOS: Zeige erst Hinweis, dann aktiviere
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    // iOS: show hint first, then activate
+    const isIOS = this.isIOSDevice()
     if (isIOS) {
       const userConfirmed = await this.showIOSCalibrationHint()
       if (!userConfirmed) {
@@ -63,7 +79,7 @@ class DeviceOrientationController {
     }
 
     if (window.DeviceOrientationEvent) {
-      // Prüfen, ob Sensor echte Werte liefert
+      // check wether sensor gives real values
       const sensorSupported = await new Promise((resolve) => {
         const timeout = setTimeout(() => resolve(false), 1000) // 1s Timeout
         const listener = (e) => {
@@ -78,10 +94,10 @@ class DeviceOrientationController {
         throw new Error('Device orientation not supported on this device')
       }
 
-      // EventListener registrieren
+      // EventListener registration
       window.addEventListener('deviceorientation', this.onOrientationChange)
 
-      // Für absoluten Kompass-Heading (wenn verfügbar)
+      // for absolute compass heading (when available)
       if ('ondeviceorientationabsolute' in window) {
         window.addEventListener('deviceorientationabsolute', this.onCompassHeading)
       }
@@ -120,8 +136,9 @@ class DeviceOrientationController {
 
   onOrientationChange (event) {
     if (!this.enabled) return
+
     /*
-    // --- Debug-Ausgabe auf dem Bildschirm ---
+    // --- Debug-output on screen, enable if needed ---
     let debug = document.getElementById('debug')
     if (!debug) {
       debug = document.createElement('div')
@@ -139,20 +156,42 @@ class DeviceOrientationController {
         z-index: 9999;
         white-space: pre;
       `
+
       document.body.appendChild(debug)
     } */
     this.alpha = event.alpha || 0
     this.beta = event.beta || 0
     this.gamma = event.gamma || 0
 
-    // iOS: webkitCompassHeading ist zuverlässiger
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    // iOS: webkitCompassHeading is more reliable
+    // const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
     let heading = this.alpha
 
+    const isIOS = this.isIOSDevice()
+    // const iOSVersionMatch = navigator.userAgent.match(/OS (\d+)_/)
+    // const iOSVersion = iOSVersionMatch ? parseInt(iOSVersionMatch[1]) : null
+
+    /*
+    debug.textContent =
+      `alpha: ${event.alpha?.toFixed(1)}\n` +
+      `beta: ${event.beta?.toFixed(1)}\n` +
+      `gamma: ${event.gamma?.toFixed(1)}\n` +
+      `webkitCompassHeading: ${event.webkitCompassHeading?.toFixed(1)}\n` +
+      `iOS: ${iOSVersion}\n` +
+      `absolute: ${event.absolute}\n` +
+      `used heading: ${heading?.toFixed(1)}`
+    */
     if (isIOS) {
       if (event.webkitCompassHeading !== undefined) {
-        heading = (event.webkitCompassHeading + 180) % 360
+        heading = event.webkitCompassHeading
+        // debug.textContent += `\n isIOS: ${isIOS}`
+        /*
+        if (iOSVersion >= 17) {
+          heading = (heading + 180) % 360
+          debug.textContent += '\n iOS > 17: true'
+        } */
       } else {
+        // no webkitCompassHeading available → use alpha
         heading = -this.alpha
       }
     } else if (event.absolute) {
@@ -161,17 +200,10 @@ class DeviceOrientationController {
       heading = this.compassHeading || this.alpha
     }
 
-    /* debug.textContent =
-      `alpha: ${event.alpha?.toFixed(1)}\n` +
-      `beta: ${event.beta?.toFixed(1)}\n` +
-      `gamma: ${event.gamma?.toFixed(1)}\n` +
-      `webkitCompassHeading: ${event.webkitCompassHeading?.toFixed(1)}\n` +
-      `absolute: ${event.absolute}\n` +
-      `used heading: ${heading?.toFixed(1)}` */
+    // NEU: iPhone specific - invert gamma
+    // const isIPhone = /iPhone/.test(navigator.userAgent)
+    const alpha = this.isIOSDevice() ? -heading : heading
 
-    // NEU: iPhone spezifisch - Gamma invertieren
-    const isIPhone = /iPhone/.test(navigator.userAgent)
-    const alpha = isIPhone ? -heading : heading
     this.updateStellariumView(alpha, this.beta, this.gamma)
 
     // Update AR navigation
@@ -247,11 +279,11 @@ class DeviceOrientationController {
         }
       }
 
-      // Azimuth Smoothing mit Angle Wrapping
+      // Azimuth Smoothing with angle wrapping
       this.smoothAzimuth = (this.smoothAzimuth + azDiff * smoothFactor) % 360
       if (this.smoothAzimuth < 0) this.smoothAzimuth += 360
 
-      // Altitude Smoothing
+      // Altitude smoothing
       this.smoothAltitude += altDiff * smoothFactor
     }
 
@@ -506,7 +538,7 @@ class DeviceOrientationController {
     this.updateTargetPosition()
   }
 
-  // iOS Calibration Hint (returns Promise)
+  // iOS Calibration Hint (returns promise)
   showIOSCalibrationHint () {
     return new Promise((resolve) => {
       const hint = document.createElement('div')
@@ -534,6 +566,7 @@ class DeviceOrientationController {
         box-shadow: 0 10px 40px rgba(0,0,0,0.3);
       `
 
+      // translation for this paragraph is handled by locales
       dialog.innerHTML = `
         <div style="font-size: 60px; margin-bottom: 20px;">🧭</div>
         <div style="font-size: 22px; font-weight: bold; margin-bottom: 15px; color: #333;">
@@ -566,7 +599,7 @@ class DeviceOrientationController {
         resolve(true)
       })
 
-      // Auch bei Klick außerhalb schließen
+      // close also on click outside popup
       hint.addEventListener('click', (e) => {
         if (e.target === hint) {
           hint.remove()
